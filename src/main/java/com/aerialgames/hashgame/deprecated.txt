@@ -1,0 +1,58 @@
+package com.aerialgames.hashgame;
+
+import java.util.Iterator;
+import java.util.concurrent.Semaphore;
+
+import com.aerialgames.hashgame.GameSurface.InputPosition;
+import com.aerialgames.hashgame.assets.Hashmap;
+
+public class deprecated {
+
+	public class InputBatch implements Iterable<InputPosition> {
+		// all pointers in current MotionEvent
+		private final static int INPUT_COUNT = 10;
+		private boolean validInput = false;
+		private Hashmap batch;
+		// lock individual pointer indexes to rotate through all of them
+		public final Semaphore inputLock = new Semaphore(1, true);
+
+		public InputBatch() {
+			this.batch = new Hashmap(InputBatch.INPUT_COUNT);
+		}
+
+		public boolean isValid()
+		{
+			return this.validInput;
+		}
+		public InputBatch(InputPosition[] inputs) {
+			this.batch = new Hashmap(InputBatch.INPUT_COUNT);
+			for (InputPosition input : inputs) {
+				this.addInput(input);
+			}
+			this.validInput = true;
+		}
+
+		public void addInput(InputPosition input) {
+			// Log.w(DEBUG_GAME_SURFACE, "Finished Waiting to Add Input");
+			if (input.getIndex() > 0 && input.getIndex() < InputBatch.INPUT_COUNT)
+				this.batch.addHashPack(input);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Iterator<InputPosition> iterator() {
+			Iterator<InputPosition> Result = null;
+//			try {
+//				this.inputLock.acquire();
+//			} catch (InterruptedException ie) {
+//				Log.w(DEBUG_GAME_SURFACE, "Finished Waiting for Input Iterator");
+//			} finally {
+				if (this.validInput) {
+					Result = (Iterator<InputPosition>) this.batch.iterator();
+//					this.inputLock.release();
+				}
+//			}
+			return Result;
+		}
+	}
+}
